@@ -3,9 +3,6 @@ const ObjectId = require('mongoose').Types.ObjectId;
 require('../models/questionInteraction');
 const QuestionInteraction = mongoose.model('QuestionInteraction');
 
-require('../models/user');
-const User = mongoose.model('User');
-
 const STATUS_USER_ERROR = 422;
 
 const sendUserError = (err, res) => {

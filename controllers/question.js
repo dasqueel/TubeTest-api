@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const ObjectId = require('mongoose').Types.ObjectId;
 require("../models/question");
 const Question = mongoose.model('Question');
 
@@ -87,8 +86,6 @@ const getQuestions = async (req, res) => {
   // get all the youtube docs with the videoId
   // then
 
-  // Question.find({ youtubeVideoId: videoId })
-  // Question.find({ "youtube.videoId": videoId })
   Question.find({ "youtube.author": "someAuthor" })
   // Question.find({ 'text': 'What is the run time of heapsort?' })
     .populate('question')
@@ -97,10 +94,6 @@ const getQuestions = async (req, res) => {
       res.json(questions);
     })
     .catch(err => res.json(err));
-  // Question
-    // .find({ "youtube.videoId": videoId })
-    // .populate('invitees.user')
-
 };
 
 module.exports = {
