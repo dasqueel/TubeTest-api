@@ -36,10 +36,10 @@ const create = async (req, res) => {
 
     try {
       let yt = await new Youtube({
-        author: 'someAuthor',
+        // author: null,  // would do some sort of youtube api call to retrieve author data
         videoId,
-        url: `youtube.com/watch?v=${videoId}`,
-        questionsUrl: `mysite.com/questions/${videoId}`,
+        // url: `youtube.com/watch?v=${videoId}`, // not needed
+        // questionsUrl: `tubetest.herokuapp.com/questions/${videoId}`,  // do not think this is needed
         questions: []
       });
 

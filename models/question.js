@@ -7,7 +7,11 @@ const QuestionSchema = Schema({
     type: Schema.Types.ObjectId,
     ref: 'User'
   },
-  rating: {
+  upvotes: {
+    type: Number,
+    default: 0
+  },
+  downvotes: {
     type: Number,
     default: 0
   },
