@@ -4,7 +4,10 @@ const express = require('express');
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 // mongoose.connect(process.env.LOCAL_DB_PATH);
-mongoose.connect(process.env.REMOTE_DB_PATH);
+mongoose.connect(
+  process.env.REMOTE_DB_PATH,
+  { useNewUrlParser: true }
+);
 
 const cors = require('cors');
 const passport = require("passport");
