@@ -3,16 +3,8 @@ const ObjectId = require('mongoose').Types.ObjectId;
 require('../models/questionInteraction');
 const QuestionInteraction = mongoose.model('QuestionInteraction');
 
-const STATUS_USER_ERROR = 422;
-
-const sendUserError = (err, res) => {
-  res.status(STATUS_USER_ERROR);
-  if (err && err.message) {
-    res.json({ message: err.message, stack: err.stack });
-  } else {
-    res.json({ error: err });
-  }
-};
+require('../models/user');
+const User = mongoose.model('User');
 
 const getUsersQuestions = async (req, res) => {
   const user = req.user;
@@ -36,7 +28,14 @@ const scoreUserGuess = async (req, res) => {
   // Find the document
   QuestionInteraction.findOneAndUpdate(query, update, options, (err, result) => {
     if (err) res.json(err);
-    res.json(result);
+
+    // addToSet (push if not exists) questionInteraction to users array field
+    const usersQuery = { _id: ObjectId(user.id) };
+    const usersUpdate = { $addToSet: { questionInteractions: result._id } };
+    User.findOneAndUpdate(usersQuery, usersUpdate, options, (err2, result2) => {
+      if (err2) res.json(err2);
+      res.json(result);
+    })
   });
 
 };
