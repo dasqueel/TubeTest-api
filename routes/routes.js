@@ -20,7 +20,7 @@ module.exports = (app) => {
   // get all users questions completed, sorted by time
   app
     .route(`${apiPrefix}/user/questions`)
-    .get(questionInteractionController.getUsersQuestions);
+    .get(authController.requireAuth, questionInteractionController.getUsersQuestions);
 
   // score a user guess on a question
   app

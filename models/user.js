@@ -21,7 +21,7 @@ const UserSchema = new Schema({
   questionInteractions: [
     {
       type: Schema.Types.ObjectId,
-      ref: 'QuestionInteractions'
+      ref: 'QuestionInteraction'
     }
   ],
   youtubes: [

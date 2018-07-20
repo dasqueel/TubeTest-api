@@ -9,6 +9,9 @@ const User = mongoose.model('User');
 const getUsersQuestions = async (req, res) => {
   const user = req.user;
   QuestionInteraction.find({ user: new ObjectId(user._id) })
+    .select('question')
+    .populate({ path: 'question', select: 'text' })
+    .limit(5)
     .then((questions) => {
       res.json(questions);
     })
