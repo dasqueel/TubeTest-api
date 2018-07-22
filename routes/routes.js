@@ -42,4 +42,12 @@ module.exports = (app) => {
 
   app.route(`${apiPrefix}/test`)
     .get((req, res) => res.send("yoooo"));
+
+  // update a users votes for a question
+  app.route(`${apiPrefix}/question/vote/:questionId`)  // is there  better rest pattern?
+    .post(authController.requireAuth, questionController.updateVote);
+
+  // get all the questions the user has voted on
+  app.route(`${apiPrefix}/user/votedQuestions`)
+    .get(authController.requireAuth, userController.getUserVotes);
 };

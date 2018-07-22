@@ -3,16 +3,9 @@ const User = require("../models/user");
 require('../models/question');
 const getTokenForUser = require('../services/token');
 
-const STATUS_USER_ERROR = 422;
 
-const sendUserError = (err, res) => {
-  res.status(STATUS_USER_ERROR);
-  if (err && err.message) {
-    res.json({ message: err.message, stack: err.stack });
-  } else {
-    res.json({ error: err });
-  }
-};
+// be efficient by making less calls to the server from the client
+// byt merging these calls into one, and return all data in one place as possible
 
 const createUser = async (req, res) => {
   const { email, password, username } = req.body;
@@ -49,7 +42,19 @@ const getUserInfo = (req, res) => {
     .catch(err => res.json(err));
 };
 
+const getUserVotes = async(req, res) => {
+  const user = req.user;
+
+  User.findOne({ _id: user._id })
+    .select('votedQuestions')
+    .then(votedQuestions => {
+      res.json(votedQuestions)
+    })
+    .catch(err => res.json(err));
+};
+
 module.exports = {
   createUser,
-  getUserInfo
+  getUserInfo,
+  getUserVotes
 };

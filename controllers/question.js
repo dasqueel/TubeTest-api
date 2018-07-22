@@ -1,20 +1,13 @@
 const mongoose = require('mongoose');
+const ObjectId = require('mongoose').Types.ObjectId;
 require("../models/question");
 const Question = mongoose.model('Question');
 
+require('../models/user');
+const User = mongoose.model('User');
+
 require('../models/youtube');
 const Youtube = mongoose.model('Youtube');
-
-const STATUS_USER_ERROR = 422;
-
-const sendUserError = (err, res) => {
-  res.status(STATUS_USER_ERROR);
-  if (err && err.message) {
-    res.json({ message: err.message, stack: err.stack });
-  } else {
-    res.json({ error: err });
-  }
-};
 
 // also have to check to see if youtube model was created for this video
 const create = async (req, res) => {
@@ -96,7 +89,63 @@ const getQuestions = async (req, res) => {
     .catch(err => res.json(err));
 };
 
+const updateVote = async (req, res) => {
+  const user = req.user;
+  const questionId = req.params.questionId;
+  const voteType = req.body.voteType;
+
+  let alreadyVoted = false;
+
+  let votedCheckDoc;
+  try {
+    votedCheckDoc = await User.findOne({ _id: ObjectId(user._id), votedQuestions: { $elemMatch: { questionId: questionId } } });
+    if (votedCheckDoc) {
+      alreadyVoted = true;
+
+      // toggle the question.upvote boolean value
+      for (let i = 0; i < votedCheckDoc.votedQuestions.length; i++) {
+        let question = votedCheckDoc.votedQuestions[i];
+        if (question.questionId === questionId) {
+          votedCheckDoc.votedQuestions[i].upvote = !votedCheckDoc.votedQuestions[i].upvote;
+          break;
+        }
+      }
+
+      votedCheckDoc.save();
+        // .then(newDoc => console.log('new toggled vote doc: ', newDoc))
+        // .catch(err => console.log(err));
+    };
+  }
+  catch (err) {
+    votedCheckDoc = err;
+  }
+
+  // decrement vote if user already voted on question already
+  if (alreadyVoted) {
+    let update;
+    if (voteType === 'upvote') update = { $inc: { downvotes: -1 } };
+    else update = { $inc: { upvotes: -1 } };
+    Question.findByIdAndUpdate(questionId, update)
+      .then(doc => console.log('should undo; doc: ', doc))
+      .catch(err => console.log(err));
+  }
+
+  // update the question doc by incremending the upvote / downvote number
+  if (voteType === 'upvote') update = { $inc: { upvotes: 1 } };
+  else if (voteType === 'downvote') update = { $inc: { downvotes: 1 } };
+  const options = { new: true, returnNewDocument: true };
+
+  Question.findByIdAndUpdate(questionId, update, options)
+    .then(doc => {
+      // or return a json success message
+      res.json(doc);
+    })
+    .catch(err => res.json(err));
+
+};
+
 module.exports = {
   create,
-  getQuestions
+  getQuestions,
+  updateVote
 };

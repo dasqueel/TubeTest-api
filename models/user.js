@@ -2,6 +2,14 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const bcrypt = require('bcryptjs');
 
+// const VoteSchema = new Schema({
+//   upVote: Boolean,
+//   questionId: {
+//     type: Schema.Types.ObjectId,
+//     ref: 'Question'
+//   }
+// });
+
 const UserSchema = new Schema({
   username: {
     type: String,
@@ -28,6 +36,18 @@ const UserSchema = new Schema({
     {
       type: Schema.Types.ObjectId,
       ref: 'Youtube'
+    }
+  ],
+  votedQuestions: [
+    {
+      upvote: {
+        type: Boolean,
+        required: true
+      },
+      questionId: {
+        type: String,
+        required: true
+      }
     }
   ]
 });
