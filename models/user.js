@@ -40,8 +40,9 @@ const UserSchema = new Schema({
   ],
   votedQuestions: [
     {
-      upvote: {
-        type: Boolean,
+      vote: {
+        type: Number,
+        enum: [-1, 0, 1],
         required: true
       },
       questionId: {
