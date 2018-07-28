@@ -38,7 +38,7 @@ module.exports = (app) => {
 
   // get questions for a youtube video
   app.route(`${apiPrefix}/question/:videoId`)
-    .get(youtubeController.getQuestions);
+    .get(authController.requireAuth, youtubeController.getQuestions);
 
   app.route(`${apiPrefix}/test`)
     .get((req, res) => res.send("yoooo"));

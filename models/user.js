@@ -2,14 +2,6 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const bcrypt = require('bcryptjs');
 
-// const VoteSchema = new Schema({
-//   upVote: Boolean,
-//   questionId: {
-//     type: Schema.Types.ObjectId,
-//     ref: 'Question'
-//   }
-// });
-
 const UserSchema = new Schema({
   username: {
     type: String,

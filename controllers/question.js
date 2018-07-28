@@ -94,54 +94,74 @@ const updateVote = async (req, res) => {
   const questionId = req.params.questionId;
   const voteType = req.body.voteType;
 
-  let alreadyVoted = false;
+  let prevVote;
+  let userVotedCheckDoc;
 
-  let votedCheckDoc;
   try {
-    votedCheckDoc = await User.findOne({ _id: ObjectId(user._id), votedQuestions: { $elemMatch: { questionId: questionId } } });
-    if (votedCheckDoc) {
-      alreadyVoted = true;
+    userVotedCheckDoc = await User.findOne({ _id: ObjectId(user._id), votedQuestions: { $elemMatch: { questionId: questionId } } });
+  }
+  catch(err) {
+    // would log error
+    console.log(err);
+    userVotedCheckDoc = err;
+  }
 
-      // toggle the question.upvote boolean value
-      for (let i = 0; i < votedCheckDoc.votedQuestions.length; i++) {
-        let question = votedCheckDoc.votedQuestions[i];
-        if (question.questionId === questionId) {
-          votedCheckDoc.votedQuestions[i].upvote = !votedCheckDoc.votedQuestions[i].upvote;
-          break;
-        }
+  // if user already voted
+  if (userVotedCheckDoc) {
+
+    // update the userDoc votedQuestions obj vote to the new vote state
+    for (let i = 0; i < userVotedCheckDoc.votedQuestions.length; i++) {
+      let question = userVotedCheckDoc.votedQuestions[i];
+      if (question.questionId === questionId) {
+        prevVote = question.vote;
+        // case when a user toggles off a vote to a neutral vote
+        if (prevVote === voteType) userVotedCheckDoc.votedQuestions[i].vote = 0;
+        else userVotedCheckDoc.votedQuestions[i].vote = voteType;
+        break;
       }
+    }
 
-      votedCheckDoc.save();
-        // .then(newDoc => console.log('new toggled vote doc: ', newDoc))
-        // .catch(err => console.log(err));
-    };
+    // save the new userDoc which has the update vote recording
+    userVotedCheckDoc.save()
+      .then(updatedUserDoc => {
+
+        // update the questionDoc
+        // has 6 different situations to update to
+        if (voteType === 1 && prevVote === 1) questionUpdate = { $inc: { upvotes: -1 } };
+        if (voteType === -1 && prevVote === -1) questionUpdate = { $inc: { downvotes: -1 } };
+        if (voteType === 1 && prevVote === 0) questionUpdate = { $inc: { upvotes: 1 } };
+        if (voteType === -1 && prevVote === 0) questionUpdate = { $inc: { downvotes: 1 } };
+        if (voteType === 1 && prevVote === -1) questionUpdate = { $inc: { downvotes: -1, upvotes: 1 } };
+        if (voteType === -1 && prevVote === 1) questionUpdate = { $inc: { downvotes: 1, upvotes: -1 } };
+        const questionOptions = { new: true, returnnewUserDocument: true };
+
+        Question.findByIdAndUpdate(questionId, questionUpdate, questionOptions)
+          .then(updatedQuestionDoc => {
+            res.json({ success: true });
+          })
+          .catch(err => res.json(err));
+      })
+      .catch(err => console.log('saving already voted doc update; err: ', err));
+
   }
-  catch (err) {
-    votedCheckDoc = err;
+
+  // user has never voted on question before
+  else {
+    const newVoteObj = { questionId, vote : voteType };
+    let update = { $push: { votedQuestions : newVoteObj } };
+
+    User.findByIdAndUpdate(user._id, update).exec();
+
+    if (voteType === 1) questionUpdate = { $inc: { upvotes: 1 } };
+    else if (voteType === -1) questionUpdate = { $inc: { downvotes: 1 } };
+
+    Question.findByIdAndUpdate(questionId, questionUpdate)
+      .then(doc => {
+        // or return a json success message
+        res.json({ success: true });
+      })
+      .catch(err => res.json(err));
   }
-
-  // decrement vote if user already voted on question already
-  if (alreadyVoted) {
-    let update;
-    if (voteType === 'upvote') update = { $inc: { downvotes: -1 } };
-    else update = { $inc: { upvotes: -1 } };
-    Question.findByIdAndUpdate(questionId, update)
-      .then(doc => console.log('should undo; doc: ', doc))
-      .catch(err => console.log(err));
-  }
-
-  // update the question doc by incremending the upvote / downvote number
-  if (voteType === 'upvote') update = { $inc: { upvotes: 1 } };
-  else if (voteType === 'downvote') update = { $inc: { downvotes: 1 } };
-  const options = { new: true, returnNewDocument: true };
-
-  Question.findByIdAndUpdate(questionId, update, options)
-    .then(doc => {
-      // or return a json success message
-      res.json(doc);
-    })
-    .catch(err => res.json(err));
-
 };
 
 module.exports = {
